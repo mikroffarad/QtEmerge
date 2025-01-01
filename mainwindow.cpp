@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 #include <QDebug>
+#include <QStandardPaths>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -13,11 +14,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->pte_search, &QPlainTextEdit::textChanged,
             this, [this]() { filterPackages(ui->pte_search->toPlainText()); });
 
-    connect(emergeProcess, &QProcess::readyReadStandardOutput,
-            this, &MainWindow::processOutput);
-    connect(emergeProcess, &QProcess::errorOccurred,
-            this, &MainWindow::handleProcessError);
+    connect(emergeProcess, &QProcess::readyReadStandardOutput, this, &MainWindow::processOutput);
 
+    connect(ui->lw_packages, &QListWidget::currentRowChanged, this, &MainWindow::onPackageSelected);
+    connect(ui->b_remove, &QPushButton::clicked, this, &MainWindow::removeSelectedPackage);
+    connect(removeProcess, &QProcess::finished, this, &MainWindow::handleRemoveProcessFinished);
+
+    ui->b_remove->setEnabled(false);
     loadPackageList();
 }
 
@@ -28,6 +31,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::loadPackageList()
 {
+    ui->pte_search->clear();
     emergeProcess->start("emerge", QStringList() << "world" << "-ep");
     ui->statusbar->showMessage("Loading package list...");
     setUIEnabled(false);
@@ -48,7 +52,7 @@ void MainWindow::processOutput()
 
         if (line.contains("Dependency resolution took")) {
             isCalculating = false;
-            ui->statusbar->showMessage("Package list loaded");
+            ui->statusbar->showMessage("Package list loaded!");
             setUIEnabled(true);
             continue;
         }
@@ -70,10 +74,89 @@ void MainWindow::processOutput()
     }
 }
 
+void MainWindow::onPackageSelected(int row)
+{
+    if (row >= 0) {
+        selectedPackage = ui->lw_packages->item(row)->text();
+        ui->b_remove->setEnabled(true);
+    } else {
+        selectedPackage.clear();
+        ui->b_remove->setEnabled(false);
+    }
+}
+
+void MainWindow::removeSelectedPackage()
+{
+    QString basePackageName = getBasePackageName(selectedPackage);
+
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Confirm Package Removal",
+                                  "Are you sure you want to remove " + basePackageName + "?",
+                                  QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+
+        QString pkexecPath = getPolkitPath();
+        if (pkexecPath.isEmpty()) {
+            QMessageBox::critical(this, "Error", "pkexec not found. Please install polkit.");
+            return;
+        }
+
+        ui->statusbar->showMessage("Removing package: " + basePackageName);
+        setUIEnabled(false);
+
+        QStringList arguments;
+        arguments << "emerge" << "-C" << basePackageName;
+        removeProcess->start(pkexecPath, arguments);
+    }
+}
+
+void MainWindow::handleRemoveProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
+        ui->statusbar->showMessage("Package removed successfully. Refreshing package list...");
+
+        allPackages.clear();
+        ui->lw_packages->clear();
+        selectedPackage.clear();
+        ui->b_remove->setEnabled(false);
+
+        loadPackageList();
+    } else {
+        setUIEnabled(true);
+        QString errorOutput = QString::fromUtf8(removeProcess->readAllStandardError());
+        ui->statusbar->showMessage("Error removing package");
+        QMessageBox::critical(this, "Error",
+                              "Failed to remove package: " + selectedPackage +
+                                  "\nExit code: " + QString::number(exitCode) +
+                                  "\nError: " + errorOutput);
+    }
+}
+
 void MainWindow::setUIEnabled(bool enabled)
 {
     ui->pte_search->setEnabled(enabled);
     ui->lw_packages->setEnabled(enabled);
+}
+
+QString MainWindow::getBasePackageName(const QString &fullPackageName)
+{
+    QRegularExpression versionRegex("-\\d");
+    QRegularExpressionMatch match = versionRegex.match(fullPackageName);
+    if (match.hasMatch()) {
+        return fullPackageName.left(match.capturedStart());
+    }
+    return fullPackageName;
+}
+
+QString MainWindow::getPolkitPath()
+{
+    QString pkexecPath = QStandardPaths::findExecutable("pkexec");
+    if (pkexecPath.isEmpty()) {
+        qDebug() << "pkexec not found in PATH";
+        return QString();
+    }
+    return pkexecPath;
 }
 
 void MainWindow::filterPackages(const QString &text)
@@ -86,11 +169,4 @@ void MainWindow::filterPackages(const QString &text)
 
     QStringList filtered = allPackages.filter(text, Qt::CaseInsensitive);
     ui->lw_packages->addItems(filtered);
-}
-
-void MainWindow::handleProcessError(QProcess::ProcessError error)
-{
-    qDebug() << "Process error:" << error;
-    ui->statusbar->showMessage("Error loading package list");
-    setUIEnabled(true);
 }

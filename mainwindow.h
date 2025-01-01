@@ -5,6 +5,7 @@
 #include <QProcess>
 #include <QStringList>
 #include <QRegularExpression>
+#include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,17 +19,23 @@ public:
     ~MainWindow();
 
 private slots:
-    void filterPackages(const QString &text);
-    void handleProcessError(QProcess::ProcessError error);
+    void filterPackages(const QString &text);    
     void processOutput();
+    void onPackageSelected(int row);
+    void removeSelectedPackage();
+    void handleRemoveProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);;
 
 private:
     Ui::MainWindow *ui;
     QProcess *emergeProcess;
+    QProcess *removeProcess = new QProcess();
     QStringList allPackages;
     void loadPackageList();
     void setUIEnabled(bool enabled);
     bool isCalculating;
+    QString selectedPackage;
+    QString getBasePackageName(const QString &fullPackageName);
+    QString getPolkitPath();
 };
 
 #endif // MAINWINDOW_H

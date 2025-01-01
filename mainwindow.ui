@@ -43,6 +43,13 @@
     <item>
      <widget class="QListWidget" name="lw_packages"/>
     </item>
+    <item>
+     <widget class="QPushButton" name="b_remove">
+      <property name="text">
+       <string>Remove selected package</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
