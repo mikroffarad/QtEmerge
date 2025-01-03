@@ -25,6 +25,9 @@ private slots:
     void removeSelectedPackage();
     void handleRemoveProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);;
 
+    void switchToSearchUninstallPage();
+    void switchToMainMenu();
+
 private:
     Ui::MainWindow *ui;
     QProcess *emergeProcess;

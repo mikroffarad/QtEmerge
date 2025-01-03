@@ -20,8 +20,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_remove, &QPushButton::clicked, this, &MainWindow::removeSelectedPackage);
     connect(removeProcess, &QProcess::finished, this, &MainWindow::handleRemoveProcessFinished);
 
-    ui->b_remove->setEnabled(false);
-    loadPackageList();
+    connect(ui->b_searchUninstall, &QPushButton::clicked, this, &MainWindow::switchToSearchUninstallPage);
+    connect(ui->b_back, &QPushButton::clicked, this, &MainWindow::switchToMainMenu);
 }
 
 MainWindow::~MainWindow()
@@ -131,6 +131,28 @@ void MainWindow::handleRemoveProcessFinished(int exitCode, QProcess::ExitStatus 
                                   "\nExit code: " + QString::number(exitCode) +
                                   "\nError: " + errorOutput);
     }
+}
+
+void MainWindow::switchToSearchUninstallPage()
+{
+    ui->statusbar->show();
+    ui->stackedWidget->setCurrentIndex(1);
+
+    if (ui->lw_packages->count() == 0) {
+        ui->b_remove->setEnabled(false);
+        loadPackageList();
+    }
+}
+
+void MainWindow::switchToMainMenu()
+{
+    if (emergeProcess->state() != QProcess::NotRunning) {
+        emergeProcess->kill();
+        emergeProcess->waitForFinished();
+    }
+    ui->statusbar->hide();
+
+    ui->stackedWidget->setCurrentIndex(0);
 }
 
 void MainWindow::setUIEnabled(bool enabled)
