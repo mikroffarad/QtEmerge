@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(emergeProcess, &QProcess::readyReadStandardOutput, this, &MainWindow::processOutput);
 
     connect(ui->lw_packages, &QListWidget::currentRowChanged, this, &MainWindow::onPackageSelected);
+    connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::loadPackageList);
     connect(ui->b_remove, &QPushButton::clicked, this, &MainWindow::removeSelectedPackage);
     connect(removeProcess, &QProcess::finished, this, &MainWindow::handleRemoveProcessFinished);
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>500</width>
-    <height>535</height>
+    <width>429</width>
+    <height>505</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -110,11 +110,22 @@
            <widget class="QListWidget" name="lw_packages"/>
           </item>
           <item>
-           <widget class="QPushButton" name="b_remove">
-            <property name="text">
-             <string>Remove selected package</string>
-            </property>
-           </widget>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QPushButton" name="b_refresh">
+              <property name="text">
+               <string>Refresh</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="b_remove">
+              <property name="text">
+               <string>Remove selected package</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
@@ -136,8 +147,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>500</width>
-     <height>20</height>
+     <width>429</width>
+     <height>26</height>
     </rect>
    </property>
   </widget>
