@@ -24,8 +24,9 @@ signals:
 
 private:
     QProcess* process;
-    QList<Package> parseEmergeOutput(const QString& output);
+    QList<Package> parseQlistOutput(const QString& output);
     QString getPolkitPath();
+    QString lastRemovedPackage;
 
 private slots:
     void handleProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);

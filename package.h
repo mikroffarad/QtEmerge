@@ -2,28 +2,13 @@
 #define PACKAGE_H
 
 #include <QString>
-#include <QRegularExpression>
 
 struct Package {
-    QString name;
-    QString version;
     QString category;
-    bool isInstalled;
+    QString name;
 
     QString getFullName() const {
-        if (!version.isEmpty()) {
-            return category + "/" + name + "-" + version;
-        }
         return category + "/" + name;
-    }
-
-    QString getBasePackageName() const {
-        QRegularExpression versionRegex("-\\d");
-        QRegularExpressionMatch match = versionRegex.match(getFullName());
-        if (match.hasMatch()) {
-            return getFullName().left(match.capturedStart());
-        }
-        return getFullName();
     }
 };
 

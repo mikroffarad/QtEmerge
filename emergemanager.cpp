@@ -26,7 +26,7 @@ void EmergeManager::listInstalledPackages()
         return;
     }
 
-    process->start("emerge", QStringList() << "world" << "-ep");
+    process->start("qlist", QStringList() << "-I");
     emit operationProgress("Loading package list...");
 }
 
@@ -45,6 +45,9 @@ void EmergeManager::removePackage(const QString &packageName)
 
     QStringList arguments;
     arguments << "emerge" << "-C" << packageName;
+
+    lastRemovedPackage = packageName;
+
     process->start(pkexecPath, arguments);
     emit operationProgress("Removing package: " + packageName);
 }
@@ -56,49 +59,22 @@ void EmergeManager::cancelCurrentOperation()
     }
 }
 
-QList<Package> EmergeManager::parseEmergeOutput(const QString &output)
+QList<Package> EmergeManager::parseQlistOutput(const QString &output)
 {
     QList<Package> packages;
     QStringList lines = output.split("\n", Qt::SkipEmptyParts);
-    bool isCalculating = false;
 
     for (const QString& line : lines) {
-        if (line.contains("Calculating dependencies")) {
-            isCalculating = true;
-            continue;
-        }
-
-        if (line.contains("Dependency resolution took")) {
-            isCalculating = false;
-            continue;
-        }
-
-        if (!isCalculating && line.startsWith("[")) {
-            QRegularExpression rx("\\[(binary|ebuild)\\s+[R\\s]+[~]?\\s*\\]\\s+([^\\s]+)");
-            QRegularExpressionMatch match = rx.match(line);
-
-            if (match.hasMatch()) {
-                QString fullPackageName = match.captured(2);
-
-                QRegularExpression packageRx("([^/]+)/([^-]+(?:-[^-]+)*)-([^-]+(?:-r\\d+(?:-\\d+)?)?)$");
-                QRegularExpressionMatch packageMatch = packageRx.match(fullPackageName);
-
-                if (packageMatch.hasMatch()) {
-                    Package pkg;
-                    pkg.category = packageMatch.captured(1);
-                    pkg.name = packageMatch.captured(2);
-                    pkg.version = packageMatch.captured(3);
-                    pkg.isInstalled = true;
-                    packages.append(pkg);
-                }
-            }
+        QStringList parts = line.split("/");
+        if (parts.size() == 2) {
+            Package pkg;
+            pkg.category = parts[0];
+            pkg.name = parts[1];
+            packages.append(pkg);
         }
     }
 
-    if (!packages.isEmpty()) {
-        emit operationProgress(QString("Found %1 installed packages").arg(packages.count()));
-    }
-
+    emit operationProgress(QString("Found %1 installed packages").arg(packages.count()));
     return packages;
 }
 
@@ -114,11 +90,13 @@ QString EmergeManager::getPolkitPath()
 void EmergeManager::handleProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-        if (process->program().endsWith("emerge")) {
+        if (process->program().endsWith("qlist")) {
             QString output = QString::fromUtf8(process->readAllStandardOutput());
-            QList<Package> packages = parseEmergeOutput(output);
+            QList<Package> packages = parseQlistOutput(output);
             emit packageListUpdated(packages);
             emit operationCompleted(true, "Operation completed successfully");
+        } else if (process->program().endsWith("pkexec")) {
+            emit operationCompleted(true, "Package removed successfully");
         }
     } else {
         QString errorOutput = QString::fromUtf8(process->readAllStandardError());

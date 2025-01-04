@@ -47,12 +47,17 @@ void MainWindow::switchToMainMenu()
 void MainWindow::handlePackageSelected(int row)
 {
     if (row >= 0 && row < ui->lw_packages->count()) {
-        selectedPackage = allPackages[row];
-        ui->b_remove->setEnabled(true);
-    } else {
-        selectedPackage = Package();
-        ui->b_remove->setEnabled(false);
+        QString displayedText = ui->lw_packages->item(row)->text();
+        for (const Package& pkg : allPackages) {
+            if (pkg.getFullName() == displayedText) {
+                selectedPackage = pkg;
+                ui->b_remove->setEnabled(true);
+                return;
+            }
+        }
     }
+    selectedPackage = Package();
+    ui->b_remove->setEnabled(false);
 }
 
 void MainWindow::handlePackageRemoval()
@@ -61,12 +66,12 @@ void MainWindow::handlePackageRemoval()
 
     QMessageBox::StandardButton reply = QMessageBox::question(this,
                                                               "Confirm Package Removal",
-                                                              "Are you sure you want to remove " + selectedPackage.getBasePackageName() + "?",
+                                                              "Are you sure you want to remove " + selectedPackage.getFullName() + "?",
                                                               QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
         setUIEnabled(false);
-        emergeManager->removePackage(selectedPackage.getBasePackageName());
+        emergeManager->removePackage(selectedPackage.getFullName());
     }
 }
 
@@ -88,8 +93,11 @@ void MainWindow::handleOperationCompleted(bool success, const QString& message)
 
     if (!success) {
         QMessageBox::critical(this, "Error", message);
-    } else if (message.contains("removed")) {
-        refreshPackageList();
+    } else {
+        if (message.contains("removed")) {
+            refreshPackageList();
+            ui->statusbar->showMessage("Package removed successfully", 3000);
+        }
     }
 }
 
