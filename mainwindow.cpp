@@ -7,21 +7,19 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , emergeProcess(new QProcess(this))
+    , removeProcess(new QProcess(this))
     , isCalculating(false)
 {
     ui->setupUi(this);
 
+    connect(ui->b_searchUninstall, &QPushButton::clicked, this, &MainWindow::switchToSearchUninstallPage);
+    connect(emergeProcess, &QProcess::finished, this, &MainWindow::processInstalledPackages);
     connect(ui->pte_search, &QPlainTextEdit::textChanged,
             this, [this]() { filterPackages(ui->pte_search->toPlainText()); });
-
-    connect(emergeProcess, &QProcess::readyReadStandardOutput, this, &MainWindow::processOutput);
-
     connect(ui->lw_packages, &QListWidget::currentRowChanged, this, &MainWindow::onPackageSelected);
-    connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::loadPackageList);
     connect(ui->b_remove, &QPushButton::clicked, this, &MainWindow::removeSelectedPackage);
     connect(removeProcess, &QProcess::finished, this, &MainWindow::handleRemoveProcessFinished);
-
-    connect(ui->b_searchUninstall, &QPushButton::clicked, this, &MainWindow::switchToSearchUninstallPage);
+    connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::loadPackageList);
     connect(ui->b_back, &QPushButton::clicked, this, &MainWindow::switchToMainMenu);
 }
 
@@ -38,7 +36,7 @@ void MainWindow::loadPackageList()
     setUIEnabled(false);
 }
 
-void MainWindow::processOutput()
+void MainWindow::processInstalledPackages()
 {
     QString output = QString::fromUtf8(emergeProcess->readAllStandardOutput());
     QStringList lines = output.split("\n", Qt::SkipEmptyParts);
@@ -53,7 +51,7 @@ void MainWindow::processOutput()
 
         if (line.contains("Dependency resolution took")) {
             isCalculating = false;
-            ui->statusbar->showMessage("Package list loaded!");
+            ui->statusbar->showMessage(line);
             setUIEnabled(true);
             continue;
         }

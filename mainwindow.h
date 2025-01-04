@@ -19,22 +19,21 @@ public:
     ~MainWindow();
 
 private slots:
-    void filterPackages(const QString &text);    
-    void processOutput();
+    void switchToSearchUninstallPage();
+    void loadPackageList();
+    void setUIEnabled(bool enabled);
+    void processInstalledPackages();
+    void filterPackages(const QString &text);
     void onPackageSelected(int row);
     void removeSelectedPackage();
     void handleRemoveProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);;
-
-    void switchToSearchUninstallPage();
     void switchToMainMenu();
 
 private:
     Ui::MainWindow *ui;
     QProcess *emergeProcess;
-    QProcess *removeProcess = new QProcess();
+    QProcess *removeProcess;
     QStringList allPackages;
-    void loadPackageList();
-    void setUIEnabled(bool enabled);
     bool isCalculating;
     QString selectedPackage;
     QString getBasePackageName(const QString &fullPackageName);
