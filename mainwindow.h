@@ -2,10 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QProcess>
-#include <QStringList>
-#include <QRegularExpression>
 #include <QMessageBox>
+#include "emergemanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -20,24 +18,21 @@ public:
 
 private slots:
     void switchToSearchUninstallPage();
-    void loadPackageList();
-    void setUIEnabled(bool enabled);
-    void processInstalledPackages();
-    void filterPackages(const QString &text);
-    void onPackageSelected(int row);
-    void removeSelectedPackage();
-    void handleRemoveProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);;
     void switchToMainMenu();
+    void handlePackageSelected(int row);
+    void handlePackageRemoval();
+    void handlePackageListUpdated(const QList<Package>& packages);
+    void handleOperationCompleted(bool success, const QString& message);
+    void filterPackages(const QString &text);
+    void refreshPackageList();
 
 private:
     Ui::MainWindow *ui;
-    QProcess *emergeProcess;
-    QProcess *removeProcess;
-    QStringList allPackages;
-    bool isCalculating;
-    QString selectedPackage;
-    QString getBasePackageName(const QString &fullPackageName);
-    QString getPolkitPath();
+    EmergeManager *emergeManager;
+    QList<Package> allPackages;
+    Package selectedPackage;
+
+    void setUIEnabled(bool enabled);
 };
 
 #endif // MAINWINDOW_H
