@@ -2,6 +2,7 @@
 #define PACKAGE_H
 
 #include <QString>
+#include <QRegularExpression>
 
 struct Package {
     QString name;
@@ -17,7 +18,12 @@ struct Package {
     }
 
     QString getBasePackageName() const {
-        return category + "/" + name;
+        QRegularExpression versionRegex("-\\d");
+        QRegularExpressionMatch match = versionRegex.match(getFullName());
+        if (match.hasMatch()) {
+            return getFullName().left(match.capturedStart());
+        }
+        return getFullName();
     }
 };
 

@@ -65,7 +65,6 @@ QList<Package> EmergeManager::parseEmergeOutput(const QString &output)
     for (const QString& line : lines) {
         if (line.contains("Calculating dependencies")) {
             isCalculating = true;
-            emit operationProgress("Calculating dependencies...");
             continue;
         }
 
@@ -75,14 +74,13 @@ QList<Package> EmergeManager::parseEmergeOutput(const QString &output)
         }
 
         if (!isCalculating && line.startsWith("[")) {
-            QRegularExpression rx("\\[(binary|ebuild)\\s+[R\\s]+\\]\\s+([^\\s]+)");
+            QRegularExpression rx("\\[(binary|ebuild)\\s+[R\\s]+[~]?\\s*\\]\\s+([^\\s]+)");
             QRegularExpressionMatch match = rx.match(line);
 
             if (match.hasMatch()) {
                 QString fullPackageName = match.captured(2);
 
-                // Parse category/name-version
-                QRegularExpression packageRx("([^/]+)/([^-]+)-(.+)");
+                QRegularExpression packageRx("([^/]+)/([^-]+(?:-[^-]+)*)-([^-]+(?:-r\\d+(?:-\\d+)?)?)$");
                 QRegularExpressionMatch packageMatch = packageRx.match(fullPackageName);
 
                 if (packageMatch.hasMatch()) {
@@ -95,6 +93,10 @@ QList<Package> EmergeManager::parseEmergeOutput(const QString &output)
                 }
             }
         }
+    }
+
+    if (!packages.isEmpty()) {
+        emit operationProgress(QString("Found %1 installed packages").arg(packages.count()));
     }
 
     return packages;
