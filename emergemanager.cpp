@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QStandardPaths>
 #include <QRegularExpression>
+#include <QTimer>
 
 EmergeManager::EmergeManager(QObject *parent)
     : QObject{parent}
@@ -9,6 +10,7 @@ EmergeManager::EmergeManager(QObject *parent)
 {
     connect(process, &QProcess::finished, this, &EmergeManager::handleProcessFinished);
     connect(process, &QProcess::errorOccurred, this, &EmergeManager::handleProcessError);
+    connect(process, &QProcess::readyReadStandardOutput, this, &EmergeManager::handleProcessOutput);
 }
 
 EmergeManager::~EmergeManager()
@@ -26,12 +28,30 @@ void EmergeManager::listInstalledPackages()
         return;
     }
 
-    process->start("qlist", QStringList() << "-I");
+    currentOperation = Operation::List;
+
+    QProcess* qlistProcess = new QProcess(this);
+    connect(qlistProcess, &QProcess::finished, this, [this, qlistProcess](int exitCode, QProcess::ExitStatus exitStatus) {
+        if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
+            QString output = QString::fromUtf8(qlistProcess->readAllStandardOutput());
+            QList<Package> packages = parseQlistOutput(output);
+            emit packageListUpdated(packages);
+            emit operationCompleted(true, "Package list updated");
+        } else {
+            QString error = QString::fromUtf8(qlistProcess->readAllStandardError());
+            emit operationCompleted(false, "Failed to get package list: " + error);
+        }
+        qlistProcess->deleteLater();
+        currentOperation = Operation::None;
+    });
+
+    qlistProcess->start("qlist", QStringList() << "-I");
     emit operationProgress("Loading package list...");
 }
 
-void EmergeManager::installPackages(const QString &packages)
+void EmergeManager::installPackages(const QString& packages)
 {
+
     if (process->state() != QProcess::NotRunning) {
         emit operationProgress("Previous operation is still running");
         return;
@@ -50,10 +70,15 @@ void EmergeManager::installPackages(const QString &packages)
     }
 
     QStringList arguments;
-    arguments << "emerge" << packageList;
+    arguments << "emerge";
+    arguments << "-q";
+    arguments << packageList;
+
+    currentOperation = Operation::Install;
+    process->setProcessChannelMode(QProcess::MergedChannels);
 
     process->start(pkexecPath, arguments);
-    emit operationProgress("Installing packages: " + packages);
+    emit operationProgress("Starting installation of: " + packages);
 }
 
 void EmergeManager::removePackage(const QString &packageName)
@@ -72,6 +97,7 @@ void EmergeManager::removePackage(const QString &packageName)
     QStringList arguments;
     arguments << "emerge" << "-C" << packageName;
 
+    currentOperation = Operation::Remove;
     lastRemovedPackage = packageName;
 
     process->start(pkexecPath, arguments);
@@ -89,6 +115,9 @@ QList<Package> EmergeManager::parseQlistOutput(const QString &output)
 {
     QList<Package> packages;
     QStringList lines = output.split("\n", Qt::SkipEmptyParts);
+
+    qDebug() << "Raw qlist output:" << output;
+    qDebug() << "Number of lines:" << lines.size();
 
     for (const QString& line : lines) {
         QStringList parts = line.split("/");
@@ -116,18 +145,31 @@ QString EmergeManager::getPolkitPath()
 void EmergeManager::handleProcessFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     if (exitCode == 0 && exitStatus == QProcess::NormalExit) {
-        if (process->program().endsWith("qlist")) {
+        switch (currentOperation) {
+        case Operation::List: {
             QString output = QString::fromUtf8(process->readAllStandardOutput());
             QList<Package> packages = parseQlistOutput(output);
             emit packageListUpdated(packages);
-            emit operationCompleted(true, "Operation completed successfully");
-        } else if (process->program().endsWith("pkexec")) {
+            break;
+        }
+        case Operation::Remove: {
             emit operationCompleted(true, "Package removed successfully");
+            break;
+        }
+        case Operation::Install: {
+            emit operationCompleted(true, "Package(s) installed successfully");
+             QTimer::singleShot(1000, this, &EmergeManager::listInstalledPackages);
+            break;
+        }
+        default:
+            emit operationCompleted(true, "Operation completed successfully");
         }
     } else {
         QString errorOutput = QString::fromUtf8(process->readAllStandardError());
         emit operationCompleted(false, "Operation failed: " + errorOutput);
     }
+
+    currentOperation = Operation::None;
 }
 
 void EmergeManager::handleProcessError(QProcess::ProcessError error)
@@ -145,5 +187,18 @@ void EmergeManager::handleProcessError(QProcess::ProcessError error)
     }
 
     emit operationCompleted(false, errorMessage);
+}
+
+void EmergeManager::handleProcessOutput()
+{
+    QString output = QString::fromUtf8(process->readAllStandardOutput()).trimmed();
+    QStringList lines = output.split("\n", Qt::SkipEmptyParts);
+
+    for (const QString& line : lines) {
+        if (line.startsWith(">>> ")) {
+            QString statusMessage = line.mid(4).trimmed();
+            emit operationProgress(statusMessage);
+        }
+    }
 }
 

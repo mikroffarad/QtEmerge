@@ -28,10 +28,18 @@ private:
     QList<Package> parseQlistOutput(const QString& output);
     QString getPolkitPath();
     QString lastRemovedPackage;
+    enum class Operation {
+        None,
+        List,
+        Remove,
+        Install
+    };
+    Operation currentOperation = Operation::None;
 
 private slots:
     void handleProcessFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void handleProcessError(QProcess::ProcessError error);
+    void handleProcessOutput();
 };
 
 #endif // EMERGEMANAGER_H

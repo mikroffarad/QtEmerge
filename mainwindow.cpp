@@ -47,6 +47,8 @@ void MainWindow::switchToSearchUninstallPage()
 void MainWindow::switchToInstallPage()
 {
     ui->statusbar->show();
+    ui->pte_packages->clear();
+    ui->le_presetName->clear();
     ui->stackedWidget->setCurrentIndex(1);
 }
 
