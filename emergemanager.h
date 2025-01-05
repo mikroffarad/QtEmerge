@@ -14,6 +14,7 @@ public:
     ~EmergeManager();
 
     void listInstalledPackages();
+    void installPackages(const QString& packages);
     void removePackage(const QString& packageName);
     void cancelCurrentOperation();
 

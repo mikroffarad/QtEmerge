@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>429</width>
+    <width>510</width>
     <height>505</height>
    </rect>
   </property>
@@ -80,26 +80,89 @@
       <widget class="QWidget" name="page_install">
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_4">
+         <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QPlainTextEdit" name="plainTextEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
+           <widget class="QGroupBox" name="groupBox_packages">
+            <property name="title">
+             <string>Package Installation</string>
             </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>25</height>
-             </size>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_hint">
+               <property name="text">
+                <string>Enter package names (separate multiple packages with spaces):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPlainTextEdit" name="pte_packages">
+               <property name="placeholderText">
+                <string>e.g., app-editors/vim dev-util/cmake</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="b_installPackages">
+               <property name="text">
+                <string>Install Package(s)</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QGroupBox" name="groupBox_presets">
+            <property name="title">
+             <string>Package Presets</string>
             </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>25</height>
-             </size>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout">
+               <item>
+                <widget class="QLineEdit" name="le_presetName">
+                 <property name="placeholderText">
+                  <string>Enter preset name</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="b_savePreset">
+                 <property name="text">
+                  <string>Save Current as Preset</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <widget class="QListWidget" name="lw_presets"/>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QPushButton" name="b_loadPreset">
+                 <property name="text">
+                  <string>Load Selected Preset</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="b_deletePreset">
+                 <property name="text">
+                  <string>Delete Selected Preset</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="b_back">
+            <property name="text">
+             <string>Go back</string>
             </property>
            </widget>
           </item>
@@ -177,7 +240,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>429</width>
+     <width>510</width>
      <height>26</height>
     </rect>
    </property>

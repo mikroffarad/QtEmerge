@@ -9,11 +9,16 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->b_searchUninstall, &QPushButton::clicked, this, &MainWindow::switchToSearchUninstallPage);
-    connect(ui->b_back, &QPushButton::clicked, this, &MainWindow::switchToMainMenu);
+    connect(ui->b_install, &QPushButton::clicked, this, &MainWindow::switchToInstallPage);
+
     connect(ui->pte_search, &QPlainTextEdit::textChanged, this, [this]() { filterPackages(ui->pte_search->toPlainText()); });
     connect(ui->lw_packages, &QListWidget::currentRowChanged, this, &MainWindow::handlePackageSelected);
     connect(ui->b_remove, &QPushButton::clicked, this, &MainWindow::handlePackageRemoval);
     connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::refreshPackageList);
+    connect(ui->b_back, &QPushButton::clicked, this, &MainWindow::switchToMainMenu);
+
+    connect(ui->b_back1, &QPushButton::clicked, this, &MainWindow::switchToMainMenu);
+    connect(ui->b_installPackages, &QPushButton::clicked, this, &MainWindow::handlePackageInstallation);
 
     connect(emergeManager, &EmergeManager::packageListUpdated, this, &MainWindow::handlePackageListUpdated);
     connect(emergeManager, &EmergeManager::operationCompleted, this, &MainWindow::handleOperationCompleted);
@@ -21,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
             ui->statusbar, [this](const QString& message) {
                 ui->statusbar->showMessage(message);
             });
+
 }
 
 MainWindow::~MainWindow()
@@ -31,11 +37,17 @@ MainWindow::~MainWindow()
 void MainWindow::switchToSearchUninstallPage()
 {
     ui->statusbar->show();
-    ui->stackedWidget->setCurrentIndex(1);
+    ui->stackedWidget->setCurrentIndex(2);
 
     if (ui->lw_packages->count() == 0) {
         refreshPackageList();
     }
+}
+
+void MainWindow::switchToInstallPage()
+{
+    ui->statusbar->show();
+    ui->stackedWidget->setCurrentIndex(1);
 }
 
 void MainWindow::switchToMainMenu()
@@ -85,6 +97,26 @@ void MainWindow::handlePackageListUpdated(const QList<Package>& packages)
     }
 
     setUIEnabled(true);
+}
+
+void MainWindow::handlePackageInstallation()
+{
+    QString packages = ui->pte_packages->toPlainText().trimmed();
+
+    if (packages.isEmpty()) {
+        QMessageBox::warning(this, "Warning", "Please enter package names");
+        return;
+    }
+
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+                                                              "Confirm Package Installation",
+                                                              "Are you sure you want to install these packages:\n" + packages,
+                                                              QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        setUIEnabled(false);
+        emergeManager->installPackages(packages);
+    }
 }
 
 void MainWindow::handleOperationCompleted(bool success, const QString& message)

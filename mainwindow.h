@@ -18,10 +18,15 @@ public:
 
 private slots:
     void switchToSearchUninstallPage();
+    void switchToInstallPage();
     void switchToMainMenu();
+
     void handlePackageSelected(int row);
     void handlePackageRemoval();
     void handlePackageListUpdated(const QList<Package>& packages);
+
+    void handlePackageInstallation();
+
     void handleOperationCompleted(bool success, const QString& message);
     void filterPackages(const QString &text);
     void refreshPackageList();

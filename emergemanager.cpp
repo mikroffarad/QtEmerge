@@ -30,6 +30,32 @@ void EmergeManager::listInstalledPackages()
     emit operationProgress("Loading package list...");
 }
 
+void EmergeManager::installPackages(const QString &packages)
+{
+    if (process->state() != QProcess::NotRunning) {
+        emit operationProgress("Previous operation is still running");
+        return;
+    }
+
+    QString pkexecPath = getPolkitPath();
+    if (pkexecPath.isEmpty()) {
+        emit operationCompleted(false, "pkexec not found. Please install polkit.");
+        return;
+    }
+
+    QStringList packageList = packages.split(" ", Qt::SkipEmptyParts);
+    if (packageList.isEmpty()) {
+        emit operationCompleted(false, "No packages specified");
+        return;
+    }
+
+    QStringList arguments;
+    arguments << "emerge" << packageList;
+
+    process->start(pkexecPath, arguments);
+    emit operationProgress("Installing packages: " + packages);
+}
+
 void EmergeManager::removePackage(const QString &packageName)
 {
     if (process->state() != QProcess::NotRunning) {
