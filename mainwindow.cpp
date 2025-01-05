@@ -5,6 +5,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     , emergeManager(new EmergeManager(this))
+    , presetManager(new PresetManager(this))
 {
     ui->setupUi(this);
 
@@ -27,6 +28,12 @@ MainWindow::MainWindow(QWidget *parent)
                 ui->statusbar->showMessage(message);
             });
 
+    connect(ui->b_savePreset, &QPushButton::clicked, this, &MainWindow::handlePresetSave);
+    connect(ui->b_loadPreset, &QPushButton::clicked, this, &MainWindow::handlePresetLoad);
+    connect(ui->b_deletePreset, &QPushButton::clicked, this, &MainWindow::handlePresetDelete);
+
+    connect(presetManager, &PresetManager::presetAdded, this, &MainWindow::handlePresetAdded);
+    connect(presetManager, &PresetManager::presetDeleted, this, &MainWindow::handlePresetDeleted);
 }
 
 MainWindow::~MainWindow()
@@ -50,6 +57,7 @@ void MainWindow::switchToInstallPage()
     ui->pte_packages->clear();
     ui->le_presetName->clear();
     ui->stackedWidget->setCurrentIndex(1);
+    loadPresets();
 }
 
 void MainWindow::switchToMainMenu()
@@ -159,10 +167,95 @@ void MainWindow::refreshPackageList()
     emergeManager->listInstalledPackages();
 }
 
+void MainWindow::handlePresetSave()
+{
+    QString presetName = ui->le_presetName->text().trimmed();
+    QString packages = ui->pte_packages->toPlainText().trimmed();
+
+    if (presetName.isEmpty()) {
+        QMessageBox::warning(this, "Warning", "Please enter a preset name");
+        return;
+    }
+
+    if (packages.isEmpty()) {
+        QMessageBox::warning(this, "Warning", "Please enter package names to save");
+        return;
+    }
+
+    if (presetManager->savePreset(presetName, packages)) {
+        ui->le_presetName->clear();
+        ui->statusbar->showMessage("Preset saved successfully", 3000);
+    } else {
+        QMessageBox::critical(this, "Error", "Failed to save preset");
+    }
+}
+
+void MainWindow::handlePresetLoad()
+{
+    QListWidgetItem* currentItem = ui->lw_presets->currentItem();
+    if (!currentItem) {
+        QMessageBox::warning(this, "Warning", "Please select a preset to load");
+        return;
+    }
+
+    QString presetName = currentItem->text();
+    QString packages = presetManager->loadPreset(presetName);
+
+    if (!packages.isEmpty()) {
+        ui->pte_packages->setPlainText(packages);
+        ui->statusbar->showMessage("Preset loaded", 3000);
+    } else {
+        QMessageBox::critical(this, "Error", "Failed to load preset");
+    }
+}
+
+void MainWindow::handlePresetDelete()
+{
+    QListWidgetItem* currentItem = ui->lw_presets->currentItem();
+    if (!currentItem) {
+        QMessageBox::warning(this, "Warning", "Please select a preset to delete");
+        return;
+    }
+
+    QString presetName = currentItem->text();
+
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+                                                              "Confirm Deletion",
+                                                              "Are you sure you want to delete preset '" + presetName + "'?",
+                                                              QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        if (presetManager->deletePreset(presetName)) {
+            ui->statusbar->showMessage("Preset deleted", 3000);
+        } else {
+            QMessageBox::critical(this, "Error", "Failed to delete preset");
+        }
+    }
+}
+
+void MainWindow::handlePresetAdded(const QString &name)
+{
+    ui->lw_presets->addItem(name);
+}
+
+void MainWindow::handlePresetDeleted(const QString &name)
+{
+    QList<QListWidgetItem*> items = ui->lw_presets->findItems(name, Qt::MatchExactly);
+    for (QListWidgetItem* item : items) {
+        delete ui->lw_presets->takeItem(ui->lw_presets->row(item));
+    }
+}
+
 void MainWindow::setUIEnabled(bool enabled)
 {
     ui->pte_search->setEnabled(enabled);
     ui->lw_packages->setEnabled(enabled);
     ui->b_remove->setEnabled(enabled && ui->lw_packages->currentRow() >= 0);
     ui->b_refresh->setEnabled(enabled);
+}
+
+void MainWindow::loadPresets()
+{
+    ui->lw_presets->clear();
+    ui->lw_presets->addItems(presetManager->getAllPresetNames());
 }

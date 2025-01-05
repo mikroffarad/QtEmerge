@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMessageBox>
 #include "emergemanager.h"
+#include "presetmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,13 +32,21 @@ private slots:
     void filterPackages(const QString &text);
     void refreshPackageList();
 
+    void handlePresetSave();
+    void handlePresetLoad();
+    void handlePresetDelete();
+    void handlePresetAdded(const QString& name);
+    void handlePresetDeleted(const QString& name);
+
 private:
     Ui::MainWindow *ui;
+
     EmergeManager *emergeManager;
+    PresetManager *presetManager;
     QList<Package> allPackages;
     Package selectedPackage;
-
     void setUIEnabled(bool enabled);
+    void loadPresets();
 };
 
 #endif // MAINWINDOW_H

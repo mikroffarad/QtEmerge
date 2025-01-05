@@ -11,12 +11,14 @@ CONFIG += c++17
 SOURCES += \
     emergemanager.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    presetmanager.cpp
 
 HEADERS += \
     emergemanager.h \
     mainwindow.h \
-    package.h
+    package.h \
+    presetmanager.h
 
 FORMS += \
     mainwindow.ui
