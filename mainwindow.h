@@ -37,13 +37,19 @@ private slots:
     void loadPreset();
     void removePreset();
 
+    // Updates page
+    void updateGentooRepo();
+    void checkForUpdates();
+    void parseUpdateList(const QString &output);
+    void updateAll();
+
 private:
     Ui::MainWindow *ui;
     QProcess *process;
     QString currentStatus;
     QStringList allPackages;
     QSettings settings;
-    void executeCommand(const QString &cmd);
+    void executeCommand(const QString &cmd, const bool &runAsRoot);
 };
 
 #endif // MAINWINDOW_H

@@ -69,7 +69,7 @@
              </sizepolicy>
             </property>
             <property name="text">
-             <string>Update packages (Coming soon)</string>
+             <string>Update packages</string>
             </property>
            </widget>
           </item>
@@ -236,21 +236,28 @@
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QListWidget" name="listWidget"/>
+           <widget class="QListWidget" name="lw_packagesToUpdate"/>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_update">
             <item>
-             <widget class="QPushButton" name="b_performUpdate">
+             <widget class="QPushButton" name="b_updateGentooRepo">
               <property name="text">
-               <string>Perform Update</string>
+               <string>Update Gentoo Repository</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="b_checkUpdates">
+             <widget class="QPushButton" name="b_checkForUpdates">
               <property name="text">
-               <string>Check Updates</string>
+               <string>Check for updates</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="b_updateAll">
+              <property name="text">
+               <string>Update all</string>
               </property>
              </widget>
             </item>

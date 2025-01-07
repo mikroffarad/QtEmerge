@@ -7,7 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    process = new QProcess(this);  // Додайте цей рядок
+    process = new QProcess(this);
 
     // UI Controls
     connect(ui->b_goToSearchUninstallPage, &QPushButton::clicked, this, &MainWindow::goToSearchUninstallPage);
@@ -27,6 +27,11 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_savePreset, &QPushButton::clicked, this, &MainWindow::savePreset);
     connect(ui->b_loadPreset, &QPushButton::clicked, this, &MainWindow::loadPreset);
     connect(ui->b_deletePreset, &QPushButton::clicked, this, &MainWindow::removePreset);
+
+    // Update page
+    connect(ui->b_updateGentooRepo, &QPushButton::clicked, this, &MainWindow::updateGentooRepo);
+    connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
+    connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
 
 }
 
@@ -84,7 +89,7 @@ void MainWindow::removePackage()
                               QString("Are you sure you want to remove %1?").arg(package))
         == QMessageBox::Yes) {
         connect(process, &QProcess::finished, this, &MainWindow::refreshInstalledPackages);
-        executeCommand(QString("emerge -C %1").arg(package));
+        executeCommand(QString("emerge -C %1").arg(package), true);
     }
 }
 
@@ -113,7 +118,7 @@ void MainWindow::installPackages()
     if (QMessageBox::question(this, "Confirm Installation",
                               QString("Are you sure you want to install these packages?\n%1").arg(packages))
         == QMessageBox::Yes) {
-        executeCommand(QString("emerge %1").arg(packages));
+        executeCommand(QString("emerge %1").arg(packages), true);
     }
 }
 
@@ -154,14 +159,103 @@ void MainWindow::removePreset()
     delete ui->lw_presets->takeItem(ui->lw_presets->row(item));
 }
 
-void MainWindow::executeCommand(const QString &cmd)
+void MainWindow::updateGentooRepo()
 {
-    qDebug() << "Executing command:" << cmd;
-    QString pkexecPath = QStandardPaths::findExecutable("pkexec");
+    executeCommand("emaint --auto sync", true);
+    connect(process, &QProcess::readyReadStandardOutput, ui->statusbar, [this]() {
+        ui->statusbar->showMessage("Updating Gentoo repository...");
+    });
+    connect(process, &QProcess::finished, this, [this]() {
+        ui->statusbar->showMessage("Gentoo repository updated successfully");
+    });
+}
 
-    process->start(pkexecPath, QStringList() << "sh" << "-c" << cmd);
+void MainWindow::checkForUpdates()
+{
+    ui->lw_packagesToUpdate->clear();
+    ui->statusbar->showMessage("Checking for updates...");
 
     connect(process, &QProcess::readyReadStandardOutput, this, [this]() {
+        QString output = process->readAllStandardOutput();
+        QStringList lines = output.split("\n", Qt::SkipEmptyParts);
+
+        for (const QString &line : lines) {
+            if (line.contains("[") && line.contains("]")) {
+
+                QString action;
+                if (line.contains(" U ")) {
+                    action = "[Update]";
+                } else if (line.contains(" R ")) {
+                    action = "[Reinstall]";
+                } else if (line.contains(" S ")) {
+                    action = "[Sync]";
+                } else if (line.contains(" NS ")) {
+                    action = "[New Slot]";
+                } else if (line.contains(" N ")) {
+                    action = "[New]";
+                } else {
+                    action = "[Other]";
+                }
+
+                QString packageInfo = line.section("]", 1).trimmed();
+
+                QString formattedLine = QString("%1 %2").arg(action, packageInfo);
+
+                ui->lw_packagesToUpdate->addItem(formattedLine);
+            }
+
+            if (line.contains("Total: ")) {
+                ui->statusbar->showMessage(line);
+            }
+        }
+
+        qDebug().noquote() << output;
+    });
+
+    executeCommand("emerge --ask --verbose --update --deep --newuse --pretend @world", false);
+}
+
+void MainWindow::parseUpdateList(const QString &output)
+{
+    QStringList lines = output.split("\n", Qt::SkipEmptyParts);
+    QRegularExpression regex(R"(\[ebuild\s+(\S+)\s+\]\s+(\S+))");
+
+    for (const QString &line : lines) {
+        QRegularExpressionMatch match = regex.match(line);
+        if (match.hasMatch()) {
+            QString action = match.captured(1);
+            QString package = match.captured(2);
+
+            QString displayText = QString("[%1] %2").arg(action).arg(package);
+            ui->lw_packagesToUpdate->addItem(displayText);
+        }
+    }
+
+    ui->statusbar->showMessage(QString("Found %1 packages for update").arg(ui->lw_packagesToUpdate->count()));
+}
+
+void MainWindow::updateAll()
+{
+    executeCommand("emerge --verbose --update --deep --newuse @world", true);
+
+    connect(process, &QProcess::finished, this, [this]() {
+        checkForUpdates();
+    });
+}
+
+void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
+{
+    qDebug() << "Executing command:" << cmd;
+
+    if (runAsRoot == true) {
+        QString pkexecPath = QStandardPaths::findExecutable("pkexec");
+        process->start(pkexecPath, QStringList() << "sh" << "-c" << cmd);
+    } else {
+        process->start("sh", QStringList() << "-c" << cmd);
+    }
+
+
+    connect(process, &QProcess::readyReadStandardOutput, this, [this, cmd]() {
         QString output = process->readAllStandardOutput();
         QStringList lines = output.split("\n", Qt::SkipEmptyParts);
 
@@ -174,7 +268,7 @@ void MainWindow::executeCommand(const QString &cmd)
                 ui->statusbar->showMessage(statusMessage);
             }
         }
-
+        ui->statusbar->showMessage("test");
         qDebug().noquote() << output;
     });
 
@@ -183,3 +277,4 @@ void MainWindow::executeCommand(const QString &cmd)
         qDebug().noquote() << error;
     });
 }
+
