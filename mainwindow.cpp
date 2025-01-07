@@ -32,7 +32,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_updateGentooRepo, &QPushButton::clicked, this, &MainWindow::updateGentooRepo);
     connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
-
 }
 
 MainWindow::~MainWindow()
@@ -175,8 +174,8 @@ void MainWindow::checkForUpdates()
     ui->lw_packagesToUpdate->clear();
     ui->statusbar->showMessage("Checking for updates...");
 
-    connect(process, &QProcess::readyReadStandardOutput, this, [this]() {
-        QString output = process->readAllStandardOutput();
+    connect(updateProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+        QString output = updateProcess->readAllStandardOutput();
         QStringList lines = output.split("\n", Qt::SkipEmptyParts);
 
         for (const QString &line : lines) {
@@ -212,39 +211,19 @@ void MainWindow::checkForUpdates()
         qDebug().noquote() << output;
     });
 
-    executeCommand("emerge --ask --verbose --update --deep --newuse --pretend @world", false);
-}
-
-void MainWindow::parseUpdateList(const QString &output)
-{
-    QStringList lines = output.split("\n", Qt::SkipEmptyParts);
-    QRegularExpression regex(R"(\[ebuild\s+(\S+)\s+\]\s+(\S+))");
-
-    for (const QString &line : lines) {
-        QRegularExpressionMatch match = regex.match(line);
-        if (match.hasMatch()) {
-            QString action = match.captured(1);
-            QString package = match.captured(2);
-
-            QString displayText = QString("[%1] %2").arg(action).arg(package);
-            ui->lw_packagesToUpdate->addItem(displayText);
-        }
-    }
-
-    ui->statusbar->showMessage(QString("Found %1 packages for update").arg(ui->lw_packagesToUpdate->count()));
+        updateProcess->start("sh", QStringList() << "-c" << "emerge --ask --verbose --update --deep --newuse --pretend @world");
 }
 
 void MainWindow::updateAll()
+
 {
     executeCommand("emerge --verbose --update --deep --newuse @world", true);
-
-    connect(process, &QProcess::finished, this, [this]() {
-        checkForUpdates();
-    });
 }
 
 void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
 {
+    disconnect(process, nullptr, this, nullptr);
+
     qDebug() << "Executing command:" << cmd;
 
     if (runAsRoot == true) {
@@ -255,20 +234,19 @@ void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
     }
 
 
-    connect(process, &QProcess::readyReadStandardOutput, this, [this, cmd]() {
+    connect(process, &QProcess::readyReadStandardOutput, this, [this]() {
         QString output = process->readAllStandardOutput();
         QStringList lines = output.split("\n", Qt::SkipEmptyParts);
 
         for (const QString& line : lines) {
-            if (line.startsWith(">>> ")) {
-                QString statusMessage = line.mid(4).trimmed();
-                if (statusMessage.startsWith("Unmerging in")) {
-                    statusMessage = "Unmerging in: 5 4 3 2 1";
+            if (line.startsWith(">>>")) {
+                if (line.contains("Unmerging in: ")) {
+                    ui->statusbar->showMessage("Unmerging in: 5 4 3 2 1");
+                } else {
+                    ui->statusbar->showMessage(line.mid(4).trimmed());
                 }
-                ui->statusbar->showMessage(statusMessage);
             }
         }
-        ui->statusbar->showMessage("test");
         qDebug().noquote() << output;
     });
 

@@ -6,7 +6,7 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QSettings>
-
+#include <QThread>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -40,15 +40,14 @@ private slots:
     // Updates page
     void updateGentooRepo();
     void checkForUpdates();
-    void parseUpdateList(const QString &output);
     void updateAll();
 
 private:
     Ui::MainWindow *ui;
     QProcess *process;
-    QString currentStatus;
     QStringList allPackages;
     QSettings settings;
+    QProcess *updateProcess = new QProcess(this);
     void executeCommand(const QString &cmd, const bool &runAsRoot);
 };
 
