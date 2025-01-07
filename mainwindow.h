@@ -5,6 +5,8 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QSettings>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,17 +26,23 @@ private slots:
     void goToUpdatePage();
     void goToMainMenu();
 
-    // searchInstall Page
+    // searchInstall page
     void refreshInstalledPackages();
     void removePackage();
     void filterPackages();
 
+    // Install page
+    void installPackages();
+    void savePreset();
+    void loadPreset();
+    void removePreset();
 
 private:
     Ui::MainWindow *ui;
     QProcess *process;
     QString currentStatus;
     QStringList allPackages;
+    QSettings settings;
     void executeCommand(const QString &cmd);
 };
 
