@@ -2,9 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QProcess>
 #include <QMessageBox>
-#include "emergemanager.h"
-#include "presetmanager.h"
+#include <QStandardPaths>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,35 +18,24 @@ public:
     ~MainWindow();
 
 private slots:
-    void switchToSearchUninstallPage();
-    void switchToInstallPage();
-    void switchToMainMenu();
+    // UI Controls
+    void goToSearchUninstallPage();
+    void goToInstallPage();
+    void goToUpdatePage();
+    void goToMainMenu();
 
-    void handlePackageSelected(int row);
-    void handlePackageRemoval();
-    void handlePackageListUpdated(const QList<Package>& packages);
+    // searchInstall Page
+    void refreshInstalledPackages();
+    void removePackage();
+    void filterPackages();
 
-    void handlePackageInstallation();
-
-    void handleOperationCompleted(bool success, const QString& message);
-    void filterPackages(const QString &text);
-    void refreshPackageList();
-
-    void handlePresetSave();
-    void handlePresetLoad();
-    void handlePresetDelete();
-    void handlePresetAdded(const QString& name);
-    void handlePresetDeleted(const QString& name);
 
 private:
     Ui::MainWindow *ui;
-
-    EmergeManager *emergeManager;
-    PresetManager *presetManager;
-    QList<Package> allPackages;
-    Package selectedPackage;
-    void setUIEnabled(bool enabled);
-    void loadPresets();
+    QProcess *process;
+    QString currentStatus;
+    QStringList allPackages;
+    void executeCommand(const QString &cmd);
 };
 
 #endif // MAINWINDOW_H

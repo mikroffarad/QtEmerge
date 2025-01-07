@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>510</width>
-    <height>505</height>
+    <width>572</width>
+    <height>568</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="b_searchUninstall">
+           <widget class="QPushButton" name="b_goToSearchUninstallPage">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -48,7 +48,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="b_install">
+           <widget class="QPushButton" name="b_goToInstallPage">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -61,7 +61,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="b_update">
+           <widget class="QPushButton" name="b_goToUpdatePage">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
               <horstretch>0</horstretch>
@@ -74,6 +74,67 @@
            </widget>
           </item>
          </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="page_searchUninstall">
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QPlainTextEdit" name="pte_search">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>32</height>
+             </size>
+            </property>
+            <property name="lineWrapMode">
+             <enum>QPlainTextEdit::LineWrapMode::WidgetWidth</enum>
+            </property>
+            <property name="centerOnScroll">
+             <bool>false</bool>
+            </property>
+            <property name="placeholderText">
+             <string extracomment="Search installed packages">Search installed packages</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QListWidget" name="lw_packages"/>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QPushButton" name="b_refresh">
+              <property name="text">
+               <string>Refresh</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="b_remove">
+              <property name="text">
+               <string>Remove selected package</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPushButton" name="b_back">
+          <property name="text">
+           <string>Go back</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -170,64 +231,39 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="page_searchUninstall">
-       <layout class="QGridLayout" name="gridLayout">
+      <widget class="QWidget" name="page_update">
+       <layout class="QGridLayout" name="gridLayout_4">
         <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QPlainTextEdit" name="pte_search">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>32</height>
-             </size>
-            </property>
-            <property name="lineWrapMode">
-             <enum>QPlainTextEdit::LineWrapMode::WidgetWidth</enum>
-            </property>
-            <property name="centerOnScroll">
-             <bool>false</bool>
-            </property>
-            <property name="placeholderText">
-             <string extracomment="Search installed packages">Search installed packages</string>
-            </property>
-           </widget>
+           <widget class="QListWidget" name="listWidget"/>
           </item>
           <item>
-           <widget class="QListWidget" name="lw_packages"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
+           <layout class="QHBoxLayout" name="horizontalLayout_update">
             <item>
-             <widget class="QPushButton" name="b_refresh">
+             <widget class="QPushButton" name="b_performUpdate">
               <property name="text">
-               <string>Refresh</string>
+               <string>Perform Update</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="b_remove">
+             <widget class="QPushButton" name="b_checkUpdates">
               <property name="text">
-               <string>Remove selected package</string>
+               <string>Check Updates</string>
               </property>
              </widget>
             </item>
            </layout>
           </item>
+          <item>
+           <widget class="QPushButton" name="b_back">
+            <property name="text">
+             <string>Go back</string>
+            </property>
+           </widget>
+          </item>
          </layout>
-        </item>
-        <item row="1" column="0">
-         <widget class="QPushButton" name="b_back">
-          <property name="text">
-           <string>Go back</string>
-          </property>
-         </widget>
         </item>
        </layout>
       </widget>
@@ -240,7 +276,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>510</width>
+     <width>572</width>
      <height>26</height>
     </rect>
    </property>
