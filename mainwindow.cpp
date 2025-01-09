@@ -8,14 +8,17 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     process = new QProcess(this);
+    updateProcess = new QProcess(this);
 
     // UI Controls
     connect(ui->b_goToSearchUninstallPage, &QPushButton::clicked, this, &MainWindow::goToSearchUninstallPage);
     connect(ui->b_goToInstallPage, &QPushButton::clicked, this, &MainWindow::goToInstallPage);
     connect(ui->b_goToUpdatePage, &QPushButton::clicked, this, &MainWindow::goToUpdatePage);
+    connect(ui->b_goToEditConfigPage, &QPushButton::clicked, this, &MainWindow::goToEditConfigPage);
     connect(ui->b_back, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
     connect(ui->b_back1, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
     connect(ui->b_back2, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
+    connect(ui->b_back3, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
 
     // Search/Uninstall page
     connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::refreshInstalledPackages);
@@ -32,6 +35,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_updateGentooRepo, &QPushButton::clicked, this, &MainWindow::updateGentooRepo);
     connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
+
+    // Edit conf page
+    // connect(ui->b_saveFile, &QPushButton::clicked, this, &MainWindow::saveFile);
 }
 
 MainWindow::~MainWindow()
@@ -56,6 +62,34 @@ void MainWindow::goToUpdatePage()
 {
     ui->statusbar->show();
     ui->stackedWidget->setCurrentIndex(3);
+}
+
+void MainWindow::goToEditConfigPage()
+{
+
+    QMessageBox msgBox;
+    msgBox.setText("Which config file would you like to edit?");
+    pb_makeConf = msgBox.addButton("make.conf", QMessageBox::ActionRole);
+    pb_packageUse = msgBox.addButton("package.use", QMessageBox::ActionRole);
+    pb_packageLicense = msgBox.addButton("package.license", QMessageBox::ActionRole);
+    pb_packageAcceptKeywords = msgBox.addButton("package.accept_keywords", QMessageBox::ActionRole);
+    msgBox.exec();
+
+    if (msgBox.clickedButton() == pb_makeConf) {
+        showFile("/etc/portage/make.conf");
+    }
+    if (msgBox.clickedButton() == pb_packageUse) {
+        showFile("/etc/portage/package.use");
+    }
+    if (msgBox.clickedButton() == pb_packageLicense) {
+        showFile("/etc/portage/package.license");
+    }
+    if (msgBox.clickedButton() == pb_packageAcceptKeywords) {
+        showFile("/etc/portage/package.accept_license");
+    }
+
+    ui->stackedWidget->setCurrentIndex(4);
+    // showFile();
 }
 
 void MainWindow::goToMainMenu()
@@ -215,15 +249,35 @@ void MainWindow::checkForUpdates()
 }
 
 void MainWindow::updateAll()
-
 {
     executeCommand("emerge --verbose --update --deep --newuse @world", true);
+    connect (process, &QProcess::finished, this, &MainWindow::checkForUpdates);
+}
+
+void MainWindow::showFile(QString filePath)
+{
+    QProcess process;
+
+    process.start("cat", QStringList() << filePath);
+    process.waitForFinished();
+
+    ui->l_file->setText(QString("Now you're editing %1").arg(filePath));
+    ui->pte_makeConf->setPlainText(process.readAllStandardOutput());
+
+    disconnect(ui->b_saveFile, &QPushButton::clicked, nullptr, nullptr);
+
+    connect(ui->b_saveFile, &QPushButton::clicked, this, [this, filePath]() {
+        saveFile(filePath);
+    });
+}
+
+void MainWindow::saveFile(QString filePath)
+{
+    executeCommand(QString("echo '%1' > %2").arg(ui->pte_makeConf->toPlainText(), filePath), true);
 }
 
 void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
 {
-    disconnect(process, nullptr, this, nullptr);
-
     qDebug() << "Executing command:" << cmd;
 
     if (runAsRoot == true) {

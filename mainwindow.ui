@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>572</width>
-    <height>568</height>
+    <width>477</width>
+    <height>482</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -70,6 +70,19 @@
             </property>
             <property name="text">
              <string>Update packages</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="b_goToEditConfigPage">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Edit config files</string>
             </property>
            </widget>
           </item>
@@ -274,6 +287,45 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="page_editConfig">
+       <layout class="QGridLayout" name="gridLayout_5">
+        <item row="0" column="0">
+         <widget class="QLabel" name="l_file">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QPlainTextEdit" name="pte_makeConf"/>
+        </item>
+        <item row="2" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QPushButton" name="b_saveFile">
+            <property name="text">
+             <string>Save</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="b_refreshFile">
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="b_back3">
+          <property name="text">
+           <string>Go back</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -283,8 +335,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>572</width>
-     <height>26</height>
+     <width>477</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>

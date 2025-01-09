@@ -6,7 +6,6 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QSettings>
-#include <QThread>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,6 +23,7 @@ private slots:
     void goToSearchUninstallPage();
     void goToInstallPage();
     void goToUpdatePage();
+    void goToEditConfigPage();
     void goToMainMenu();
 
     // searchInstall page
@@ -45,10 +45,17 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QProcess *process;
+    QProcess *updateProcess;
     QStringList allPackages;
     QSettings settings;
-    QProcess *updateProcess = new QProcess(this);
+    QAbstractButton* pb_makeConf;
+    QAbstractButton* pb_packageUse;
+    QAbstractButton* pb_packageLicense;
+    QAbstractButton* pb_packageAcceptKeywords;
+    QString filePath;
     void executeCommand(const QString &cmd, const bool &runAsRoot);
+    void showFile(QString filePath);
+    void saveFile(QString filePath);
 };
 
 #endif // MAINWINDOW_H
