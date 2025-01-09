@@ -36,8 +36,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
 
-    // Edit conf page
-    // connect(ui->b_saveFile, &QPushButton::clicked, this, &MainWindow::saveFile);
 }
 
 MainWindow::~MainWindow()
@@ -66,7 +64,6 @@ void MainWindow::goToUpdatePage()
 
 void MainWindow::goToEditConfigPage()
 {
-
     QMessageBox msgBox;
     msgBox.setText("Which config file would you like to edit?");
     pb_makeConf = msgBox.addButton("make.conf", QMessageBox::ActionRole);
@@ -89,7 +86,7 @@ void MainWindow::goToEditConfigPage()
     }
 
     ui->stackedWidget->setCurrentIndex(4);
-    // showFile();
+    ui->statusbar->show();
 }
 
 void MainWindow::goToMainMenu()
@@ -262,7 +259,7 @@ void MainWindow::showFile(QString filePath)
     process.waitForFinished();
 
     ui->l_file->setText(QString("Now you're editing %1").arg(filePath));
-    ui->pte_makeConf->setPlainText(process.readAllStandardOutput());
+    ui->pte_fileEdit->setPlainText(process.readAllStandardOutput());
 
     disconnect(ui->b_saveFile, &QPushButton::clicked, nullptr, nullptr);
 
@@ -273,7 +270,8 @@ void MainWindow::showFile(QString filePath)
 
 void MainWindow::saveFile(QString filePath)
 {
-    executeCommand(QString("echo '%1' > %2").arg(ui->pte_makeConf->toPlainText(), filePath), true);
+    executeCommand(QString("echo '%1' > %2").arg(ui->pte_fileEdit->toPlainText(), filePath), true);
+    ui->statusbar->showMessage("File saved successfully", 5000);
 }
 
 void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
