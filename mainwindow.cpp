@@ -228,7 +228,6 @@ void MainWindow::checkForUpdates()
                 }
 
                 QString packageInfo = line.section("]", 1).trimmed();
-
                 QString formattedLine = QString("%1 %2").arg(action, packageInfo);
 
                 ui->lw_packagesToUpdate->addItem(formattedLine);
@@ -265,6 +264,12 @@ void MainWindow::showFile(QString filePath)
 
     connect(ui->b_saveFile, &QPushButton::clicked, this, [this, filePath]() {
         saveFile(filePath);
+    });
+
+    disconnect(ui->b_refreshFile, &QPushButton::clicked, nullptr, nullptr);
+
+    connect(ui->b_refreshFile, &QPushButton::clicked, this, [this, filePath]() {
+        showFile(filePath);
     });
 }
 
