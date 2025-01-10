@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
 
+    loadPresetsFromFile();
 }
 
 MainWindow::~MainWindow()
@@ -159,9 +160,9 @@ void MainWindow::savePreset()
 
     if (name.isEmpty() || packages.isEmpty()) return;
 
-    settings.beginGroup(name);
-    settings.setValue("packages", packages);
-    settings.endGroup();
+    presetsData[name] = packages;
+
+    savePresetsToFile();
 
     if (!ui->lw_presets->findItems(name, Qt::MatchExactly).isEmpty()) {
         ui->lw_presets->findItems(name, Qt::MatchExactly).first()->setText(name);
@@ -175,9 +176,10 @@ void MainWindow::loadPreset()
     QListWidgetItem *item = ui->lw_presets->currentItem();
     if (!item) return;
 
-    settings.beginGroup(item->text());
-    ui->pte_packages->setPlainText(settings.value("packages").toString());
-    settings.endGroup();
+    QString name = item->text();
+    if (presetsData.contains(name)) {
+        ui->pte_packages->setPlainText(presetsData[name].toString());
+    }
 }
 
 void MainWindow::removePreset()
@@ -185,8 +187,55 @@ void MainWindow::removePreset()
     QListWidgetItem *item = ui->lw_presets->currentItem();
     if (!item) return;
 
-    settings.remove(item->text());
+    QString name = item->text();
+    presetsData.remove(name);
+    savePresetsToFile();
+
     delete ui->lw_presets->takeItem(ui->lw_presets->row(item));
+}
+
+QString MainWindow::getPresetsFilePath() {
+    QString configPath = QDir::homePath() + "/.config/QtEmerge";
+    QDir dir(configPath);
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+    return configPath + "/presets.json";
+}
+
+void MainWindow::loadPresetsFromFile() {
+    QFile file(getPresetsFilePath());
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Could not open presets file for reading";
+        return;
+    }
+
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    file.close();
+
+    if (!doc.isObject()) {
+        qDebug() << "Invalid presets file format";
+        return;
+    }
+
+    presetsData = doc.object();
+
+    ui->lw_presets->clear();
+    for (const QString& key : presetsData.keys()) {
+        ui->lw_presets->addItem(key);
+    }
+}
+
+void MainWindow::savePresetsToFile() {
+    QFile file(getPresetsFilePath());
+    if (!file.open(QIODevice::WriteOnly)) {
+        qDebug() << "Could not open presets file for writing";
+        return;
+    }
+
+    QJsonDocument doc(presetsData);
+    file.write(doc.toJson());
+    file.close();
 }
 
 void MainWindow::updateGentooRepo()
