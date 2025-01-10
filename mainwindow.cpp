@@ -22,21 +22,23 @@ MainWindow::MainWindow(QWidget *parent)
 
     // Search/Uninstall page
     connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::refreshInstalledPackages);
-    connect(ui->b_remove, &QPushButton::clicked, this, &MainWindow::removePackage);
+    connect(ui->b_removeSelected, &QPushButton::clicked, this, &MainWindow::removePackage);
     connect(ui->pte_search, &QPlainTextEdit::textChanged, this, &MainWindow::refreshInstalledPackages);
+    connect(ui->b_removeOrphaned, &QPushButton::clicked, this, &MainWindow::removeOrphanedPackages);
 
     // Install page
     connect(ui->b_installPackages, &QPushButton::clicked, this, &MainWindow::installPackages);
     connect(ui->b_savePreset, &QPushButton::clicked, this, &MainWindow::savePreset);
     connect(ui->b_loadPreset, &QPushButton::clicked, this, &MainWindow::loadPreset);
     connect(ui->b_deletePreset, &QPushButton::clicked, this, &MainWindow::removePreset);
+    loadPresetsFromFile();
 
     // Update page
     connect(ui->b_updateGentooRepo, &QPushButton::clicked, this, &MainWindow::updateGentooRepo);
     connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
 
-    loadPresetsFromFile();
+
 }
 
 MainWindow::~MainWindow()
@@ -138,6 +140,41 @@ void MainWindow::filterPackages()
                 ui->lw_packages->addItem(package);
             }
         }
+    }
+}
+
+void MainWindow::removeOrphanedPackages()
+{
+    process->start("emerge", QStringList() << "-p" << "--depclean");
+    process->waitForFinished();
+
+    QString output = process->readAllStandardOutput();
+    QStringList lines = output.split("\n");
+
+    QString orphanedPackages;
+    for (const QString& line : lines) {
+        if (line.contains("All selected packages:")) {
+            orphanedPackages = line;
+            break;
+        }
+    }
+
+    if (orphanedPackages.isEmpty()) {
+        QMessageBox::information(this, "No Orphaned Packages",
+                                 "No orphaned packages found in your system.");
+        return;
+    }
+
+    orphanedPackages.replace("All selected packages:",
+                             "These are the packages that would be unmerged:");
+
+    QMessageBox confirmBox;
+    confirmBox.setInformativeText(orphanedPackages);
+    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    confirmBox.setDefaultButton(QMessageBox::No);
+
+    if (confirmBox.exec() == QMessageBox::Yes) {
+        executeCommand("emerge --depclean", true);
     }
 }
 

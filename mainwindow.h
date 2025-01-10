@@ -33,6 +33,7 @@ private slots:
     void refreshInstalledPackages();
     void removePackage();
     void filterPackages();
+    void removeOrphanedPackages();
 
     // Install page
     void installPackages();
