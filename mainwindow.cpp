@@ -290,7 +290,6 @@ void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
         process->start("sh", QStringList() << "-c" << cmd);
     }
 
-
     connect(process, &QProcess::readyReadStandardOutput, this, [this]() {
         QString output = process->readAllStandardOutput();
         QStringList lines = output.split("\n", Qt::SkipEmptyParts);
