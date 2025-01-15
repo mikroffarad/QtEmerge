@@ -9,6 +9,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     process = new QProcess(this);
     updateProcess = new QProcess(this);
+    orphanProcess = new QProcess(this);
 
     // UI Controls
     connect(ui->b_goToSearchUninstallPage, &QPushButton::clicked, this, &MainWindow::goToSearchUninstallPage);
@@ -145,37 +146,44 @@ void MainWindow::filterPackages()
 
 void MainWindow::removeOrphanedPackages()
 {
-    process->start("emerge", QStringList() << "-p" << "--depclean");
-    process->waitForFinished();
+    orphanProcess->start("emerge", QStringList() << "-p" << "--depclean");
+    ui->statusbar->showMessage("Searching orphaned packages...");
 
-    QString output = process->readAllStandardOutput();
-    QStringList lines = output.split("\n");
+    connect(orphanProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+        QString output = orphanProcess->readAllStandardOutput();
+        QStringList lines = output.split("\n");
 
-    QString orphanedPackages;
-    for (const QString& line : lines) {
-        if (line.contains("All selected packages:")) {
-            orphanedPackages = line;
-            break;
+        for (const QString& line : lines) {
+            if (line.contains("All selected packages:")) {
+                orphanedPackages = line;
+                break;
+            }
         }
-    }
+    });
 
-    if (orphanedPackages.isEmpty()) {
-        QMessageBox::information(this, "No Orphaned Packages",
-                                 "No orphaned packages found in your system.");
-        return;
-    }
+    connect(orphanProcess, &QProcess::finished, this, [this]() {
+        if (orphanedPackages.isEmpty()) {
+            QMessageBox::information(this, "No Orphaned Packages",
+                                     "No orphaned packages found in your system.");
+            refreshInstalledPackages();
+            return;
+        }
 
-    orphanedPackages.replace("All selected packages:",
-                             "These are the packages that would be unmerged:");
+        orphanedPackages.replace("All selected packages:",
+                                 "These are the packages that would be unmerged:");
 
-    QMessageBox confirmBox;
-    confirmBox.setInformativeText(orphanedPackages);
-    confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    confirmBox.setDefaultButton(QMessageBox::No);
+        QMessageBox confirmBox;
+        confirmBox.setText("Remove Orphaned Packages");
+        confirmBox.setInformativeText(orphanedPackages);
+        confirmBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        confirmBox.setDefaultButton(QMessageBox::No);
 
-    if (confirmBox.exec() == QMessageBox::Yes) {
-        executeCommand("emerge --depclean", true);
-    }
+        if (confirmBox.exec() == QMessageBox::Yes) {
+            return executeCommand("emerge --depclean", true);
+        } else {
+            refreshInstalledPackages();
+        }
+    });
 }
 
 void MainWindow::installPackages()

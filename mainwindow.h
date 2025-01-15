@@ -50,6 +50,8 @@ private:
     Ui::MainWindow *ui;
     QProcess *process;
     QProcess *updateProcess;
+    QProcess *orphanProcess;
+    QString orphanedPackages;
     QStringList allPackages;
     QAbstractButton* pb_makeConf;
     QAbstractButton* pb_packageUse;
