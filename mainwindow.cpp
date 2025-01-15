@@ -146,22 +146,22 @@ void MainWindow::filterPackages()
 
 void MainWindow::removeOrphanedPackages()
 {
-    orphanProcess->start("emerge", QStringList() << "-p" << "--depclean");
     ui->statusbar->showMessage("Searching orphaned packages...");
 
-    connect(orphanProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+    disconnect(orphanProcess, &QProcess::finished, nullptr, nullptr);
+
+    connect(orphanProcess, &QProcess::finished, this, [this]() {
         QString output = orphanProcess->readAllStandardOutput();
         QStringList lines = output.split("\n");
 
+        orphanedPackages.clear();
         for (const QString& line : lines) {
             if (line.contains("All selected packages:")) {
                 orphanedPackages = line;
                 break;
             }
         }
-    });
 
-    connect(orphanProcess, &QProcess::finished, this, [this]() {
         if (orphanedPackages.isEmpty()) {
             QMessageBox::information(this, "No Orphaned Packages",
                                      "No orphaned packages found in your system.");
@@ -179,11 +179,15 @@ void MainWindow::removeOrphanedPackages()
         confirmBox.setDefaultButton(QMessageBox::No);
 
         if (confirmBox.exec() == QMessageBox::Yes) {
-            return executeCommand("emerge --depclean", true);
+            executeCommand("emerge --depclean", true);
         } else {
             refreshInstalledPackages();
         }
+
+        ui->statusbar->clearMessage();
     });
+
+    orphanProcess->start("emerge", QStringList() << "-p" << "--depclean");
 }
 
 void MainWindow::installPackages()
