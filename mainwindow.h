@@ -34,6 +34,7 @@ private slots:
     void removePackage();
     void filterPackages();
     void removeOrphanedPackages();
+    void clearTextField();
 
     // Install page
     void installPackages();

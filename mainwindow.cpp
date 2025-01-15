@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
+#include "ui_mainwindow.h"
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_removeSelected, &QPushButton::clicked, this, &MainWindow::removePackage);
     connect(ui->pte_search, &QPlainTextEdit::textChanged, this, &MainWindow::refreshInstalledPackages);
     connect(ui->b_removeOrphaned, &QPushButton::clicked, this, &MainWindow::removeOrphanedPackages);
+    connect(ui->b_clearSearch, &QPushButton::clicked, this, &MainWindow::clearTextField);
 
     // Install page
     connect(ui->b_installPackages, &QPushButton::clicked, this, &MainWindow::installPackages);
@@ -188,6 +189,11 @@ void MainWindow::removeOrphanedPackages()
     });
 
     orphanProcess->start("emerge", QStringList() << "-p" << "--depclean");
+}
+
+void MainWindow::clearTextField()
+{
+    ui->pte_search->clear();
 }
 
 void MainWindow::installPackages()

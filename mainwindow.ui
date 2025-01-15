@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>477</width>
-    <height>482</height>
+    <width>452</width>
+    <height>467</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -93,7 +93,7 @@
       <widget class="QWidget" name="page_searchUninstall">
        <layout class="QGridLayout" name="gridLayout">
         <item row="0" column="0">
-         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QPlainTextEdit" name="pte_search">
             <property name="sizePolicy">
@@ -120,54 +120,61 @@
            </widget>
           </item>
           <item>
-           <widget class="QListWidget" name="lw_packages"/>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_4">
-            <item>
-             <widget class="QPushButton" name="b_refresh">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Refresh</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="b_removeSelected">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Remove selected package</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="b_removeOrphaned">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>Remove orphaned packages</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QPushButton" name="b_clearSearch">
+            <property name="text">
+             <string>Clear</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
         <item row="1" column="0">
+         <widget class="QListWidget" name="lw_packages"/>
+        </item>
+        <item row="2" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QPushButton" name="b_refresh">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Refresh</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="b_removeSelected">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Remove selected package</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="b_removeOrphaned">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string>Remove orphaned packages</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
          <widget class="QPushButton" name="b_back">
           <property name="text">
            <string>Go back</string>
@@ -360,7 +367,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>477</width>
+     <width>452</width>
      <height>22</height>
     </rect>
    </property>
