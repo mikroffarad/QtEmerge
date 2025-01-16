@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     process = new QProcess(this);
     updateProcess = new QProcess(this);
     orphanProcess = new QProcess(this);
+    repoProcess = new QProcess(this);
 
     // UI Controls
     connect(ui->b_goToSearchUninstallPage, &QPushButton::clicked, this, &MainWindow::goToSearchUninstallPage);
@@ -400,24 +401,47 @@ void MainWindow::showAvailableRepos()
 {
     isShowingInstalledRepos = false;
     ui->b_performActionRepo->setText("Enable selected repository");
+    ui->statusbar->showMessage("Getting info...");
 
-    QProcess process;
-    process.start("eselect", QStringList() << "repository" << "list");
-    process.waitForFinished();
-    QString output = process.readAllStandardOutput();
-    QStringList reposOutputLines = output.split("\n", Qt::SkipEmptyParts);
+    disconnect(repoProcess, &QProcess::finished, this, nullptr);
 
-    parseReposList(reposOutputLines);
+    connect(repoProcess, &QProcess::finished, this, [this]() {
+        QString output = repoProcess->readAllStandardOutput();
+        QStringList reposOutputLines = output.split("\n", Qt::SkipEmptyParts);
+        parseReposList(reposOutputLines);
+        ui->statusbar->clearMessage();
+    });
+
+    repoProcess->start("eselect", QStringList() << "repository" << "list");
 }
 
 void MainWindow::performActionRepo()
 {
+    QListWidgetItem *selectedItem = ui->lw_repos->currentItem();
+    QString selectedRepo = selectedItem->text();
+
+    QRegularExpression regex("\\[(\\d+)\\]");
+    QRegularExpressionMatch match = regex.match(selectedRepo);
+    QString selectedRepoIndex = match.captured(1);
+
+    disconnect(repoProcess, &QProcess::finished, this, nullptr);
+
+    connect(repoProcess, &QProcess::finished, this, [this]() {
+        if (isShowingInstalledRepos == true) {
+            showInstalledRepos();
+        }
+        if (isShowingInstalledRepos == false) {
+            showAvailableRepos();
+        }
+    });
+
     if (isShowingInstalledRepos == true) {
-        qDebug() << "Remove selected repo";
+        repoProcess->start("pkexec", QStringList() << "eselect" << "repository" << "remove" << selectedRepoIndex);
     }
     if (isShowingInstalledRepos == false) {
-        qDebug() << "Enable selected repo";
+        repoProcess->start("pkexec", QStringList() << "eselect" << "repository" << "enable" << selectedRepoIndex);
     }
+
 }
 
 void MainWindow::showFile(QString filePath)

@@ -58,6 +58,7 @@ private:
     QProcess *process;
     QProcess *updateProcess;
     QProcess *orphanProcess;
+    QProcess *repoProcess;
     QString orphanedPackages;
     QStringList allPackages;
     QAbstractButton* pb_makeConf;
