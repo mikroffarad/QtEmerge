@@ -395,7 +395,7 @@ void MainWindow::showInstalledRepos()
 void MainWindow::showAvailableRepos()
 {
     QProcess process;
-        process.start("eselect", QStringList() << "repository" << "list");
+    process.start("eselect", QStringList() << "repository" << "list");
     process.waitForFinished();
     QString output = process.readAllStandardOutput();
     QStringList reposOutputLines = output.split("\n", Qt::SkipEmptyParts);
