@@ -45,6 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Repositories management page
     connect(ui->b_showAvailableRepos, &QPushButton::clicked, this, &MainWindow::showAvailableRepos);
     connect(ui->b_showInstalledRepos, &QPushButton::clicked, this, &MainWindow::showInstalledRepos);
+    connect(ui->b_performActionRepo, &QPushButton::clicked, this, &MainWindow::performActionRepo);
 }
 
 MainWindow::~MainWindow()
@@ -383,6 +384,9 @@ void MainWindow::updateAll()
 
 void MainWindow::showInstalledRepos()
 {
+    isShowingInstalledRepos = true;
+    ui->b_performActionRepo->setText("Remove selected repository");
+
     QProcess process;
     process.start("eselect", QStringList() << "repository" << "list" << "-i");
     process.waitForFinished();
@@ -394,6 +398,9 @@ void MainWindow::showInstalledRepos()
 
 void MainWindow::showAvailableRepos()
 {
+    isShowingInstalledRepos = false;
+    ui->b_performActionRepo->setText("Enable selected repository");
+
     QProcess process;
     process.start("eselect", QStringList() << "repository" << "list");
     process.waitForFinished();
@@ -401,6 +408,16 @@ void MainWindow::showAvailableRepos()
     QStringList reposOutputLines = output.split("\n", Qt::SkipEmptyParts);
 
     parseReposList(reposOutputLines);
+}
+
+void MainWindow::performActionRepo()
+{
+    if (isShowingInstalledRepos == true) {
+        qDebug() << "Remove selected repo";
+    }
+    if (isShowingInstalledRepos == false) {
+        qDebug() << "Enable selected repo";
+    }
 }
 
 void MainWindow::showFile(QString filePath)
