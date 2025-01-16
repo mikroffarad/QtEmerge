@@ -16,10 +16,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_goToInstallPage, &QPushButton::clicked, this, &MainWindow::goToInstallPage);
     connect(ui->b_goToUpdatePage, &QPushButton::clicked, this, &MainWindow::goToUpdatePage);
     connect(ui->b_goToEditConfigPage, &QPushButton::clicked, this, &MainWindow::goToEditConfigPage);
+    connect(ui->b_goToRepoPage, &QPushButton::clicked, this, &MainWindow::goToRepoPage);
     connect(ui->b_back, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
     connect(ui->b_back1, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
     connect(ui->b_back2, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
     connect(ui->b_back3, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
+    connect(ui->b_back4, &QPushButton::clicked, this, &MainWindow::goToMainMenu);
 
     // Search/Uninstall page
     connect(ui->b_refresh, &QPushButton::clicked, this, &MainWindow::refreshInstalledPackages);
@@ -39,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_updateGentooRepo, &QPushButton::clicked, this, &MainWindow::updateGentooRepo);
     connect(ui->b_checkForUpdates, &QPushButton::clicked, this, &MainWindow::checkForUpdates);
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
+
+    // Repositories management page
 
 
 }
@@ -87,7 +91,7 @@ void MainWindow::goToEditConfigPage()
         showFile("/etc/portage/package.license");
     }
     if (msgBox.clickedButton() == pb_packageAcceptKeywords) {
-        showFile("/etc/portage/package.accept_license");
+        showFile("/etc/portage/package.accept_keywords");
     }
 
     ui->stackedWidget->setCurrentIndex(4);
@@ -98,6 +102,11 @@ void MainWindow::goToMainMenu()
 {
     ui->statusbar->hide();
     ui->stackedWidget->setCurrentIndex(0);
+}
+
+void MainWindow::goToRepoPage()
+{
+    ui->stackedWidget->setCurrentIndex(5);
 }
 
 void MainWindow::refreshInstalledPackages()

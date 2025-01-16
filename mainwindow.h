@@ -28,6 +28,7 @@ private slots:
     void goToUpdatePage();
     void goToEditConfigPage();
     void goToMainMenu();
+    void goToRepoPage();
 
     // searchInstall page
     void refreshInstalledPackages();
@@ -46,6 +47,9 @@ private slots:
     void updateGentooRepo();
     void checkForUpdates();
     void updateAll();
+
+    // Repositories management page
+    void showInstalledRepos();
 
 private:
     Ui::MainWindow *ui;
