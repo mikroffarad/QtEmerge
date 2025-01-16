@@ -43,8 +43,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->b_updateAll, &QPushButton::clicked, this, &MainWindow::updateAll);
 
     // Repositories management page
-
-
+    connect(ui->b_showAvailableRepos, &QPushButton::clicked, this, &MainWindow::showAvailableRepos);
+    connect(ui->b_showInstalledRepos, &QPushButton::clicked, this, &MainWindow::showInstalledRepos);
 }
 
 MainWindow::~MainWindow()
@@ -107,6 +107,7 @@ void MainWindow::goToMainMenu()
 void MainWindow::goToRepoPage()
 {
     ui->stackedWidget->setCurrentIndex(5);
+    showInstalledRepos();
 }
 
 void MainWindow::refreshInstalledPackages()
@@ -302,6 +303,23 @@ void MainWindow::savePresetsToFile() {
     file.close();
 }
 
+void MainWindow::parseReposList(QStringList reposOutputLines)
+{
+    ui->lw_repos->clear();
+
+    bool startAdding = false;
+    for (const QString &line : reposOutputLines) {
+        if (line.contains("Available repositories:")) {
+            startAdding = true;
+            continue;
+        }
+
+        if (startAdding && line.trimmed().startsWith("[")) {
+            ui->lw_repos->addItem(line.trimmed());
+        }
+    }
+}
+
 void MainWindow::updateGentooRepo()
 {
     executeCommand("emaint --auto sync", true);
@@ -361,6 +379,28 @@ void MainWindow::updateAll()
 {
     executeCommand("emerge --verbose --update --deep --newuse @world", true);
     connect (process, &QProcess::finished, this, &MainWindow::checkForUpdates);
+}
+
+void MainWindow::showInstalledRepos()
+{
+    QProcess process;
+    process.start("eselect", QStringList() << "repository" << "list" << "-i");
+    process.waitForFinished();
+    QString output = process.readAllStandardOutput();
+    QStringList reposOutputLines = output.split("\n", Qt::SkipEmptyParts);
+
+    parseReposList(reposOutputLines);
+}
+
+void MainWindow::showAvailableRepos()
+{
+    QProcess process;
+        process.start("eselect", QStringList() << "repository" << "list");
+    process.waitForFinished();
+    QString output = process.readAllStandardOutput();
+    QStringList reposOutputLines = output.split("\n", Qt::SkipEmptyParts);
+
+    parseReposList(reposOutputLines);
 }
 
 void MainWindow::showFile(QString filePath)

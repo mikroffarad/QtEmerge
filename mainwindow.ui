@@ -374,7 +374,7 @@
       <widget class="QWidget" name="page_repoManagement">
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="1" column="0">
-         <widget class="QListWidget" name="listWidget"/>
+         <widget class="QListWidget" name="lw_repos"/>
         </item>
         <item row="2" column="0">
          <widget class="QPushButton" name="b_performActionRepo">

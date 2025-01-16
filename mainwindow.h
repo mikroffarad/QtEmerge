@@ -50,6 +50,7 @@ private slots:
 
     // Repositories management page
     void showInstalledRepos();
+    void showAvailableRepos();
 
 private:
     Ui::MainWindow *ui;
@@ -70,6 +71,7 @@ private:
     void saveFile(QString filePath);
     void loadPresetsFromFile();
     void savePresetsToFile();
+    void parseReposList(QStringList reposOutputLines);
 };
 
 #endif // MAINWINDOW_H
