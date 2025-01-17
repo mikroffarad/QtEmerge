@@ -324,19 +324,29 @@ void MainWindow::parseReposList(QStringList reposOutputLines)
 
 void MainWindow::updateGentooRepo()
 {
-    executeCommand("emaint --auto sync", true);
-    connect(process, &QProcess::readyReadStandardOutput, ui->statusbar, [this]() {
-        ui->statusbar->showMessage("Updating Gentoo repository...");
+    // executeCommand("emaint --auto sync", true);
+    connect(updateProcess, &QProcess::readyReadStandardOutput, ui->statusbar, [this]() {
+        QString output = updateProcess->readAllStandardOutput();
+        QStringList lines = output.split("\n", Qt::SkipEmptyParts);
+        for (const QString &line : lines) {
+            ui->statusbar->showMessage(line);
+        }
+        qDebug().noquote() << output;
     });
-    connect(process, &QProcess::finished, this, [this]() {
+    connect(updateProcess, &QProcess::finished, this, [this]() {
         ui->statusbar->showMessage("Gentoo repository updated successfully");
     });
+
+    updateProcess->start("pkexec", QStringList() << "emaint" << "--auto" << "sync");
 }
 
 void MainWindow::checkForUpdates()
 {
     ui->lw_packagesToUpdate->clear();
     ui->statusbar->showMessage("Checking for updates...");
+
+    disconnect(updateProcess, &QProcess::readyReadStandardOutput, nullptr, nullptr);
+    disconnect(updateProcess, &QProcess::finished, nullptr, nullptr);
 
     connect(updateProcess, &QProcess::readyReadStandardOutput, this, [this]() {
         QString output = updateProcess->readAllStandardOutput();
@@ -503,10 +513,10 @@ void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
     connect(process, &QProcess::readyReadStandardError, this, [this]() {
         QString error = process->readAllStandardError();
         qDebug().noquote() << error;
-
-        QMessageBox::information(this, "An error occured",
-                                 error);
-
+        if (!error.isEmpty()) {
+            QMessageBox::information(this, "An error occurred",
+                                     error);
+        }
     });
 }
 
