@@ -503,6 +503,10 @@ void MainWindow::executeCommand(const QString &cmd, const bool &runAsRoot)
     connect(process, &QProcess::readyReadStandardError, this, [this]() {
         QString error = process->readAllStandardError();
         qDebug().noquote() << error;
+
+        QMessageBox::information(this, "An error occured",
+                                 error);
+
     });
 }
 
